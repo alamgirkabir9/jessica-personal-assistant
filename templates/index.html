@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Assistant Jessica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .greeting {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .status {
+            font-size: 1.1em;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .status.listening {
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .status.stopped {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .instructions ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instructions li:before {
+            content: "•";
+            color: #4CAF50;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Personal Assistant Jessica</h1>
+        <div class="greeting">{{ greeting }} I am Jessica, sir. Please tell me how I may help you</div>
+        
+        <div class="status" id="status">
+            Click "Start Listening" to begin voice commands
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" id="startBtn" onclick="startListening()">
+                Start Listening
+            </button>
+            <button class="btn btn-stop" id="stopBtn" onclick="stopListening()" disabled>
+                Stop Listening
+            </button>
+        </div>
+
+        <div class="instructions">
+            <h3>Voice Commands:</h3>
+            <ul>
+                <li>Wikipedia [topic] - Search Wikipedia</li>
+                <li>Open YouTube/Google/Stack Overflow</li>
+                <li>Play romantic song / Play sad song</li>
+                <li>Search [query] - Google search</li>
+                <li>What time is it / What's the date</li>
+                <li>Tell me a joke / Tell me a story</li>
+                <li>How are you / Who are you</li>
+                <li>Weather / News - Open weather/news sites</li>
+                <li>Say "Stop" or "Exit" to end listening</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let isListening = false;
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function updateStatus(message, type = '') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+            
+            if (type === 'listening') {
+                statusEl.classList.add('pulse');
+            } else {
+                statusEl.classList.remove('pulse');
+            }
+        }
+
+        function updateButtons() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            startBtn.disabled = isListening;
+            stopBtn.disabled = !isListening;
+        }
+
+        async function startListening() {
+            showLoading();
+            try {
+                const response = await fetch('/start_listening', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'started') {
+                    isListening = true;
+                    updateStatus('Listening... Say "Stop" to end', 'listening');
+                    updateButtons();
+                } else if (data.status === 'already_listening') {
+                    updateStatus('Already listening...', 'listening');
+                }
+            } catch (error) {
+                updateStatus('Error starting listening', 'stopped');
+                console.error('Error:', error);
+            }
+            hideLoading();
+        }
+
+        async function stopListening() {
+            showLoading();
+            try {
+                const response = await fetch('/stop_listening', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'stopped') {
+                    isListening = false;
+                    updateStatus('Listening stopped. Click "Start Listening" to begin again', 'stopped');
+                    updateButtons();
+                }
+            } catch (error) {
+                updateStatus('Error stopping listening', 'stopped');
+                console.error('Error:', error);
+            }
+            hideLoading();
+        }
+
+        // Check status periodically
+        setInterval(async () => {
+            try {
+                const response = await fetch('/get_status');
+                const data = await response.json();
+                
+                if (data.listening !== isListening) {
+                    isListening = data.listening;
+                    updateButtons();
+                    
+                    if (isListening) {
+                        updateStatus('🎤 Listening... Say "Stop" to end', 'listening');
+                    } else {
+                        updateStatus('😴 Listening stopped. Click "Start Listening" to begin again', 'stopped');
+                    }
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }, 1000); // Check every second for more responsive UI
+
+        // Initialize page
+        updateButtons();
+    </script>
+</body>
+</html>
